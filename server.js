@@ -41,10 +41,22 @@ const SYSTEM_PROMPT = `你是一位专业的 Life Coach AI 助手，拥有丰富
 
 // 配置 CORS - 允许前端跨域访问
 app.use(cors({
-    origin: ['http://localhost:3001', 'http://127.0.0.1:3001', 'file://', 'http://localhost:3000', 'http://127.0.0.1:3000'],
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    origin: [
+        'http://localhost:3001', 
+        'http://127.0.0.1:3001', 
+        'file://', 
+        'http://localhost:3000', 
+        'http://127.0.0.1:3000',
+        'https://lifecoach2679110.vercel.app',
+        /^https?:\/\/.*\.vercel\.app$/,
+        /^https?:\/\/.*\.github\.io$/,
+        'http://localhost:*',
+        'https://localhost:*'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+    preflightContinue: true
 }));
 
 // 解析 JSON 请求体
@@ -60,6 +72,11 @@ app.use(express.static(path.join(__dirname)));
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
+});
+
+// favicon.ico 处理 - 避免控制台报错
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end();
 });
 
 // 健康检查端点

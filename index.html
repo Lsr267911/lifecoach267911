@@ -456,8 +456,11 @@
         const statusText = document.getElementById('statusText');
         const loader = document.getElementById('loader');
         
-        // 服务器配置
-        const API_URL = 'http://localhost:3001/api/chat';
+        // 服务器配置 - 自动适配不同环境
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_URL = isLocalhost 
+            ? 'http://localhost:3001/api/chat'
+            : window.location.origin + '/api/chat';
         
         // 初始化事件监听器
         function initializeEventListeners() {
