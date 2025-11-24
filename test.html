@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>环境检测测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .info { background: #f0f8ff; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffe6e6; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #e6ffe6; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 10px 5px; background: #007acc; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #005999; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Life Coach AI 环境检测</h1>
+    
+    <div id="envInfo" class="info">
+        <h3>🌐 环境信息</h3>
+        <div id="envDetails">正在检测...</div>
+    </div>
+    
+    <div id="apiTest" class="info">
+        <h3>📡 API 测试</h3>
+        <button onclick="testAPI()">测试 API 连接</button>
+        <div id="apiResult">等待测试...</div>
+    </div>
+    
+    <div id="fixInfo" class="error">
+        <h3>🔧 如果看到 localhost 错误</h3>
+        <p>1. 确保已重新部署项目</p>
+        <p>2. 强制刷新浏览器：Ctrl+Shift+R</p>
+        <p>3. 清除浏览器缓存</p>
+        <p>4. 使用无痕模式测试</p>
+    </div>
+
+    <script>
+        // 环境检测
+        const hostname = window.location.hostname;
+        const currentOrigin = window.location.origin;
+        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+        
+        let API_URL;
+        if (isLocalhost) {
+            API_URL = 'http://localhost:3001/api/chat';
+        } else {
+            API_URL = '/api/chat';
+        }
+        
+        // 显示环境信息
+        document.getElementById('envDetails').innerHTML = `
+            <p><strong>主机名:</strong> ${hostname}</p>
+            <p><strong>域名:</strong> ${currentOrigin}</p>
+            <p><strong>是否本地:</strong> ${isLocalhost}</p>
+            <p><strong>API URL:</strong> <span style="color: ${API_URL.includes('localhost') ? 'red' : 'green'}">${API_URL}</span></p>
+            <p><strong>用户代理:</strong> ${navigator.userAgent}</p>
+        `;
+        
+        // API 测试函数
+        async function testAPI() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '🔄 正在测试...';
+            
+            try {
+                console.log('🔍 测试 API:', API_URL);
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: 'ping'
+                    })
+                });
+                
+                console.log('📥 响应状态:', response.status);
+                console.log('📥 响应头:', Object.fromEntries(response.headers.entries()));
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ API 响应:', data);
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <p>✅ API 连接成功！</p>
+                        <p><strong>状态:</strong> ${response.status}</p>
+                        <p><strong>响应:</strong> ${JSON.stringify(data, null, 2)}</p>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('❌ API 错误:', error);
+                
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <p>❌ API 连接失败</p>
+                        <p><strong>错误:</strong> ${error.message}</p>
+                        <p><strong>API URL:</strong> ${API_URL}</p>
+                        <details>
+                            <summary>详细错误信息</summary>
+                            <pre>${error.stack || error.toString()}</pre>
+                        </details>
+                    </div>
+                `;
+            }
+        }
+        
+        // 页面加载时自动测试
+        window.addEventListener('load', () => {
+            setTimeout(testAPI, 1000);
+        });
+        
+        // 显示环境状态
+        if (hostname.includes('vercel.app')) {
+            if (API_URL.includes('localhost')) {
+                document.getElementById('fixInfo').style.display = 'block';
+                console.error('🚨 检测到配置错误：Vercel 环境不应该使用 localhost API');
+            } else {
+                document.getElementById('fixInfo').innerHTML = '<div class="success"><h3>✅ 环境配置正确</h3><p>Vercel 环境正在使用正确的 API 端点</p></div>';
+            }
+        }
+    </script>
+</body>
+</html>
