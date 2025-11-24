@@ -460,21 +460,40 @@
         const hostname = window.location.hostname;
         const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
         const isVercel = hostname.includes('vercel.app');
+        const currentOrigin = window.location.origin;
         
         let API_URL;
         
+        // 强制使用 Vercel API，只要不在 localhost 环境
         if (isLocalhost) {
             // 本地开发环境 - 使用本地服务器
             API_URL = 'http://localhost:3001/api/chat';
-        } else if (isVercel) {
-            // Vercel 部署环境 - 使用 Serverless Function
-            API_URL = window.location.origin + '/api/chat';
         } else {
-            // 其他环境 - 尝试使用相对路径
-            API_URL = '/api/chat';
+            // 所有非本地环境（包括 Vercel 预览和生产环境）都使用 Serverless Function
+            API_URL = currentOrigin + '/api/chat';
         }
         
-        console.log('当前环境:', { hostname, isLocalhost, isVercel, API_URL });
+        // 添加详细的调试信息
+        console.log('🌐 环境检测详情:', {
+            hostname: hostname,
+            origin: currentOrigin,
+            isLocalhost: isLocalhost,
+            isVercel: isVercel,
+            finalApiUrl: API_URL,
+            userAgent: navigator.userAgent,
+            protocol: window.location.protocol
+        });
+        
+        // 显示当前环境状态给用户
+        if (!isLocalhost) {
+            console.log('🚀 检测到云部署环境，使用 Serverless Function API');
+            
+            // 在页面加载时显示状态（可选）
+            const statusDiv = document.getElementById('statusText');
+            if (statusDiv) {
+                statusDiv.textContent = '云服务模式';
+            }
+        }
         
         // 初始化事件监听器
         function initializeEventListeners() {
@@ -658,7 +677,12 @@
         
         // 检查服务器连接
         async function checkServerConnection() {
+            console.log('🔍 开始检查服务器连接...');
+            console.log('📍 API URL:', API_URL);
+            
             try {
+                console.log('📡 发送连接测试请求...');
+                
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
@@ -669,12 +693,33 @@
                     })
                 });
                 
+                console.log('📥 服务器响应状态:', response.status);
+                console.log('📥 响应头:', Object.fromEntries(response.headers.entries()));
+                
                 if (!response.ok) {
-                    throw new Error('Server not responding');
+                    const errorText = await response.text();
+                    console.error('❌ 服务器响应错误:', response.status, errorText);
+                    throw new Error(`Server responded with ${response.status}: ${errorText}`);
                 }
+                
+                const data = await response.json();
+                console.log('✅ 服务器连接成功:', data);
+                
             } catch (error) {
+                console.error('❌ 服务器连接失败:', error);
                 updateStatus('服务器未连接', 'offline');
-                showMessage('无法连接到后端服务器，请确保服务器正在运行（node server.js）', 'error');
+                
+                // 根据环境显示不同的错误信息
+                const errorMessage = isLocalhost 
+                    ? '无法连接到本地服务器，请确保运行: node server.js'
+                    : `无法连接到云服务 API (${API_URL})，请检查部署状态`;
+                    
+                showMessage(errorMessage, 'error');
+                
+                // 如果是 CORS 错误，提供额外信息
+                if (error.message.includes('CORS') || error.message.includes('fetch')) {
+                    showMessage('CORS 错误：这可能是因为 API 还未部署或配置不正确', 'error');
+                }
             }
         }
     </script>
