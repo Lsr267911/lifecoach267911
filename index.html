@@ -456,21 +456,21 @@
         const statusText = document.getElementById('statusText');
         const loader = document.getElementById('loader');
         
-        // 服务器配置 - 自动适配不同环境
+        // 服务器配置 - 强制使用 Vercel API
         const hostname = window.location.hostname;
-        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-        const isVercel = hostname.includes('vercel.app');
         const currentOrigin = window.location.origin;
+        
+        // 简化环境检测：只允许 localhost 使用本地 API
+        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
         
         let API_URL;
         
-        // 强制使用 Vercel API，只要不在 localhost 环境
         if (isLocalhost) {
             // 本地开发环境 - 使用本地服务器
             API_URL = 'http://localhost:3001/api/chat';
         } else {
-            // 所有非本地环境（包括 Vercel 预览和生产环境）都使用 Serverless Function
-            API_URL = currentOrigin + '/api/chat';
+            // 所有其他环境（包括所有 Vercel 环境）强制使用相对路径
+            API_URL = '/api/chat';
         }
         
         // 添加详细的调试信息
@@ -478,15 +478,22 @@
             hostname: hostname,
             origin: currentOrigin,
             isLocalhost: isLocalhost,
-            isVercel: isVercel,
             finalApiUrl: API_URL,
             userAgent: navigator.userAgent,
             protocol: window.location.protocol
         });
         
+        // 🚨 强制安全检查：如果 Vercel 环境还在尝试访问 localhost，强制修正
+        if (hostname.includes('vercel.app') && API_URL.includes('localhost')) {
+            console.error('🚨 检测到错误的 API URL 配置，强制修正');
+            API_URL = '/api/chat';
+            console.log('✅ API URL 已修正为:', API_URL);
+        }
+        
         // 显示当前环境状态给用户
         if (!isLocalhost) {
             console.log('🚀 检测到云部署环境，使用 Serverless Function API');
+            console.log('📍 API 端点:', API_URL);
             
             // 在页面加载时显示状态（可选）
             const statusDiv = document.getElementById('statusText');
@@ -536,6 +543,13 @@
             if (message.length > 500) {
                 showMessage('消息长度不能超过500字', 'error');
                 return;
+            }
+            
+            // 🚨 最后安全检查：确保 Vercel 环境不使用 localhost
+            if (hostname.includes('vercel.app') && API_URL.includes('localhost')) {
+                console.error('🚨 发送前检测到错误 API URL，强制修正');
+                API_URL = '/api/chat';
+                console.log('✅ API URL 已修正为:', API_URL);
             }
             
             // 清空输入框并禁用
