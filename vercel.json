@@ -4,26 +4,32 @@
     {
       "src": "index.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "api/chat.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 60
+      }
     }
   ],
   "routes": [
     {
       "src": "/",
-      "dest": "index.html"
+      "dest": "/index.html"
+    },
+    {
+      "src": "/api/chat",
+      "dest": "/api/chat.js"
     },
     {
       "src": "/favicon.ico",
       "dest": "/favicon.ico"
     }
   ],
-  "functions": {
-    "api/chat.js": {
-      "runtime": "@vercel/node"
-    }
-  },
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
@@ -39,5 +45,11 @@
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/chat.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 60
+    }
+  }
 }

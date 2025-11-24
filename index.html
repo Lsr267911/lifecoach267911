@@ -459,25 +459,22 @@
         // 服务器配置 - 自动适配不同环境
         const hostname = window.location.hostname;
         const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-        const isVercelPreview = hostname.includes('vercel.app') && hostname.includes('-');
-        const isVercelProd = hostname.includes('vercel.app') && !hostname.includes('-');
+        const isVercel = hostname.includes('vercel.app');
         
         let API_URL;
         
         if (isLocalhost) {
+            // 本地开发环境 - 使用本地服务器
             API_URL = 'http://localhost:3001/api/chat';
-        } else if (isVercelProd) {
-            // 生产 Vercel 部署 - 使用 Serverless Function
-            API_URL = window.location.origin + '/api/chat';
-        } else if (isVercelPreview) {
-            // 预览 Vercel 部署 - 使用 Serverless Function
+        } else if (isVercel) {
+            // Vercel 部署环境 - 使用 Serverless Function
             API_URL = window.location.origin + '/api/chat';
         } else {
-            // 其他环境（如 GitHub Pages）
-            API_URL = window.location.origin + '/api/chat';
+            // 其他环境 - 尝试使用相对路径
+            API_URL = '/api/chat';
         }
         
-        console.log('当前环境:', { hostname, isLocalhost, isVercelPreview, isVercelProd, API_URL });
+        console.log('当前环境:', { hostname, isLocalhost, isVercel, API_URL });
         
         // 初始化事件监听器
         function initializeEventListeners() {

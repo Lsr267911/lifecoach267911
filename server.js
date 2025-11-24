@@ -48,15 +48,18 @@ app.use(cors({
         'http://localhost:3000', 
         'http://127.0.0.1:3000',
         'https://lifecoach2679110.vercel.app',
+        'https://lifecoach2679110-d8421sjjy-lsrs-projects-789ce81d.vercel.app',
         /^https?:\/\/.*\.vercel\.app$/,
         /^https?:\/\/.*\.github\.io$/,
         'http://localhost:*',
-        'https://localhost:*'
+        'https://localhost:*',
+        null // 支持 file:// 协议
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true,
-    preflightContinue: true
+    preflightContinue: true,
+    optionsSuccessStatus: 200
 }));
 
 // 解析 JSON 请求体
