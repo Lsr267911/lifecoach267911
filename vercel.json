@@ -1,18 +1,11 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "index.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "api/chat.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 60
-      }
+  "functions": {
+    "api/chat.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 60
     }
-  ],
+  },
   "routes": [
     {
       "src": "/",
@@ -49,11 +42,5 @@
         }
       ]
     }
-  ],
-  "functions": {
-    "api/chat.js": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 60
-    }
-  }
+  ]
 }
